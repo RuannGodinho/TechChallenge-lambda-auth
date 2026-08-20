@@ -1,0 +1,5 @@
+# Lambda auth package
+node_modules/
+.env.local
+.aws-sam/
+samconfig.toml.local

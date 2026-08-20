@@ -1,0 +1,17 @@
+version = 0.1
+
+[default.global.parameters]
+stack_name = "node-fiap-auth-local"
+
+[default.build.parameters]
+cached = true
+parallel = true
+
+[default.local_start_api.parameters]
+port = 3001
+warm_containers = "LAZY"
+env_vars = "env.local.json"
+template = "template.yaml"
+
+[default.local_invoke.parameters]
+env_vars = "env.local.json"

@@ -1,0 +1,23 @@
+{
+  "name": "auth-lambda",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "jest",
+    "invoke:sign": "node local/invoke-sign.js",
+    "invoke:authorizer": "node local/invoke-authorizer.js",
+    "sam:build": "sam build",
+    "sam:start": "sam local start-api --port 3001 --env-vars env.local.json --warm-containers LAZY",
+    "sam:invoke:login": "sam local invoke AuthSignFunction --event events/login-event.json --env-vars env.local.json",
+    "sam:invoke:authorizer": "sam local invoke AuthAuthorizerFunction --event events/authorizer-event.json --env-vars env.local.json",
+    "sam:invoke:proxy": "sam local invoke BackendProxyFunction --event events/backend-proxy-event.json --env-vars env.local.json",
+    "sam:backend:up": "echo Use docker compose in the TechChallenge-Fiap clone for the local Express backend",
+    "sam:backend:down": "echo Use docker compose in the TechChallenge-Fiap clone for the local Express backend"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.3"
+  },
+  "devDependencies": {
+    "jest": "^30.3.0"
+  }
+}

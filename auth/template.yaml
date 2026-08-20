@@ -1,0 +1,125 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Local JWT auth stack. Simulates API Gateway + Lambda authorizer + HTTP proxy to Express.
+  Production infra is managed by Terraform — this template is for sam local only.
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 15
+    MemorySize: 128
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        JWT_SECRET: local-dev-secret
+        JWT_EXPIRES_IN: 1h
+        AUTH_EMAIL: admin@example.com
+        AUTH_PASSWORD: admin123
+
+Resources:
+  AuthHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+      Auth:
+        DefaultAuthorizer: JwtAuthorizer
+        Authorizers:
+          JwtAuthorizer:
+            FunctionArn: !GetAtt AuthAuthorizerFunction.Arn
+            AuthorizerPayloadFormatVersion: '2.0'
+            EnableSimpleResponses: true
+            Identity:
+              Headers:
+                - Authorization
+
+  AuthSignFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: nodejs20.x
+    Properties:
+      FunctionName: auth-sign-local
+      CodeUri: .
+      Handler: sign/handler.handler
+      Description: Login — validates credentials and signs JWT
+      Events:
+        Login:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref AuthHttpApi
+            Path: /api/login
+            Method: POST
+            Auth:
+              Authorizer: NONE
+
+  AuthAuthorizerFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: nodejs20.x
+    Properties:
+      FunctionName: auth-authorizer-local
+      CodeUri: .
+      Handler: authorizer/handler.handler
+      Description: JWT authorizer — validates Bearer token and returns user context
+
+  BackendProxyFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: nodejs20.x
+    Properties:
+      FunctionName: backend-proxy-local
+      CodeUri: .
+      Handler: backend-proxy/handler.handler
+      Description: Proxies requests to local Express (simulates EKS HTTP_PROXY integration)
+      Environment:
+        Variables:
+          GATEWAY_TRUST_SECRET: local-dev-trust-secret
+          BACKEND_URL: http://host.docker.internal:3000
+      Events:
+        PublicOrdemDetalhes:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref AuthHttpApi
+            Path: /api/ordensServico/{cpfCnpj}/detalhes
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        DocsRoot:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref AuthHttpApi
+            Path: /docs
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        DocsAssets:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref AuthHttpApi
+            Path: /docs/{proxy+}
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        SwaggerJson:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref AuthHttpApi
+            Path: /swagger.json
+            Method: GET
+            Auth:
+              Authorizer: NONE
+        ProtectedApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref AuthHttpApi
+            Path: /api/{proxy+}
+            Method: ANY
+
+Outputs:
+  HttpApiId:
+    Description: HTTP API identifier
+    Value: !Ref AuthHttpApi
+  LocalEntryPoint:
+    Description: Use sam local start-api on port 3001
+    Value: http://127.0.0.1:3001

@@ -1,0 +1,23 @@
+{
+  "version": "2.0",
+  "routeKey": "GET /api/clientes",
+  "rawPath": "/api/clientes",
+  "rawQueryString": "",
+  "headers": {
+    "authorization": "Bearer replace-me",
+    "content-type": "application/json"
+  },
+  "requestContext": {
+    "http": {
+      "method": "GET",
+      "path": "/api/clientes"
+    },
+    "authorizer": {
+      "lambda": {
+        "userId": "mock-user",
+        "email": "admin@example.com"
+      }
+    }
+  },
+  "isBase64Encoded": false
+}

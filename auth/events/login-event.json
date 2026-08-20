@@ -1,0 +1,17 @@
+{
+  "version": "2.0",
+  "routeKey": "POST /api/login",
+  "rawPath": "/api/login",
+  "rawQueryString": "",
+  "headers": {
+    "content-type": "application/json"
+  },
+  "requestContext": {
+    "http": {
+      "method": "POST",
+      "path": "/api/login"
+    }
+  },
+  "body": "{\"email\":\"admin@example.com\",\"password\":\"admin123\"}",
+  "isBase64Encoded": false
+}

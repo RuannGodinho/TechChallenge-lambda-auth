@@ -1,0 +1,28 @@
+{
+  "version": "2.0",
+  "type": "REQUEST",
+  "routeArn": "arn:aws:execute-api:us-east-1:123456789012:abc123/$default/GET/api/clientes",
+  "identitySource": ["Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example"],
+  "routeKey": "GET /api/clientes",
+  "rawPath": "/api/clientes",
+  "rawQueryString": "",
+  "headers": {
+    "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example"
+  },
+  "requestContext": {
+    "accountId": "123456789012",
+    "apiId": "abc123",
+    "domainName": "abc123.execute-api.us-east-1.amazonaws.com",
+    "domainPrefix": "abc123",
+    "http": {
+      "method": "GET",
+      "path": "/api/clientes",
+      "protocol": "HTTP/1.1",
+      "sourceIp": "127.0.0.1",
+      "userAgent": "local-test"
+    },
+    "requestId": "local-request-id",
+    "routeKey": "GET /api/clientes",
+    "stage": "$default"
+  }
+}
