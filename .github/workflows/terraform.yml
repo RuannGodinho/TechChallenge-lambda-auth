@@ -45,17 +45,6 @@ jobs:
           echo "::error::${{ inputs.action }} requires confirm=yes."
           exit 1
 
-      - name: Block production state key
-        working-directory: .
-        env:
-          TF_STATE_KEY: ${{ vars.TF_STATE_KEY }}
-        run: |
-          KEY="${TF_STATE_KEY:-split/lambda-auth/terraform.tfstate}"
-          if [ "$KEY" = "eks/terraform.tfstate" ]; then
-            echo "::error::Refusing to use the monorepo EKS state key. Keep TF_STATE_KEY=split/lambda-auth/terraform.tfstate until cutover."
-            exit 1
-          fi
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20.x
@@ -75,22 +64,24 @@ jobs:
           TF_BACKEND_HCL: ${{ secrets.TF_BACKEND_HCL }}
           TF_STATE_BUCKET: ${{ secrets.TF_STATE_BUCKET }}
           TF_AWS_REGION: ${{ vars.TF_AWS_REGION }}
-          TF_STATE_KEY: ${{ vars.TF_STATE_KEY }}
         run: |
-          if [ -n "$TF_BACKEND_HCL" ]; then
-            printf '%s\n' "$TF_BACKEND_HCL" > backend.hcl
-          elif [ -n "$TF_STATE_BUCKET" ]; then
-            printf '%s\n' \
-              "bucket       = \"${TF_STATE_BUCKET}\"" \
-              "key          = \"${TF_STATE_KEY:-split/lambda-auth/terraform.tfstate}\"" \
-              "region       = \"${TF_AWS_REGION:-us-east-1}\"" \
-              "encrypt      = true" \
-              "use_lockfile = true" \
-              > backend.hcl
-          else
-            echo "::error::Set TF_STATE_BUCKET / TF_BACKEND_HCL (same S3 bucket as TechChallenge-infra-eks)."
+          BUCKET="$TF_STATE_BUCKET"
+          if [ -z "$BUCKET" ] && [ -n "$TF_BACKEND_HCL" ]; then
+            BUCKET=$(printf '%s\n' "$TF_BACKEND_HCL" | sed -n 's/^[[:space:]]*bucket[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)
+          fi
+          if [ -z "$BUCKET" ]; then
+            echo "::error::Set TF_STATE_BUCKET (or TF_BACKEND_HCL with a bucket). Same S3 bucket as TechChallenge-infra-eks."
             exit 1
           fi
+          # Always use this stack's key so a copied monorepo snippet cannot target EKS state.
+          printf '%s\n' \
+            "bucket       = \"${BUCKET}\"" \
+            "key          = \"lambda-auth/terraform.tfstate\"" \
+            "region       = \"${TF_AWS_REGION:-us-east-1}\"" \
+            "encrypt      = true" \
+            "use_lockfile = true" \
+            > backend.hcl
+          echo "Using state s3://${BUCKET}/lambda-auth/terraform.tfstate"
 
       - name: Terraform fmt
         run: terraform fmt -check -recursive
