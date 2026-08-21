@@ -16,4 +16,5 @@ output "auth_authorizer_lambda_name" {
 output "eks_backend_url" {
   description = "Backend URL used by API Gateway HTTP integrations"
   value       = var.enable_auth_gateway ? local.eks_backend_url : ""
+  sensitive   = true
 }
