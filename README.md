@@ -2,7 +2,7 @@
 
 Funções serverless de autenticação JWT (`auth-sign`, `auth-authorizer`) e API Gateway HTTP que faz proxy autenticado para a API no EKS.
 
-> **Não aplique este stack enquanto o Terraform do monorepo ainda criar as Lambdas.** Use a state key `split/lambda-auth/terraform.tfstate`. Apply duplicaria nomes (`techchallenge-eks-auth-sign`).
+O Terraform deste repo **sempre** usa o state `lambda-auth/terraform.tfstate` no bucket compartilhado (mesmo se `TF_STATE_KEY` / `TF_BACKEND_HCL` tiverem sido copiados do EKS). Assim o apply cria/atualiza Lambdas e API Gateway sem apontar para o state do cluster.
 
 ## Layout
 
