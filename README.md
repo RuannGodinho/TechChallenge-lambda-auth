@@ -19,6 +19,10 @@ O empacote (`terraform/scripts/prepare-auth-lambda.js`) instala deps de produç�
 2. API no NodePort `30080` (repo da aplicação).
 3. Secrets GitHub iguais aos da API: `JWT_SECRET`, `AUTH_EMAIL`, `AUTH_PASSWORD`, `GATEWAY_TRUST_SECRET`.
 
+## Documentação
+
+Sequência de autenticação, RFC-003 e ADR-003: [docs/](docs/README.md). Índice da solução: [TechChallenge-Fiap / docs/ARQUITETURA.md](https://github.com/RuannGodinho/TechChallenge-Fiap/blob/main/docs/ARQUITETURA.md).
+
 ## CI/CD
 
 | Workflow | Gatilho | Efeito |
