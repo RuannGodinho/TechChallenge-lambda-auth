@@ -53,20 +53,6 @@ variable "jwt_expires_in" {
   default     = "1h"
 }
 
-variable "auth_email" {
-  description = "Login email validated by the sign Lambda"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "auth_password" {
-  description = "Login password validated by the sign Lambda"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
 variable "gateway_trust_secret" {
   description = "Shared secret injected by API Gateway as X-Gateway-Trust"
   type        = string

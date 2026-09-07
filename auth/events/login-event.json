@@ -12,6 +12,6 @@
       "path": "/api/login"
     }
   },
-  "body": "{\"email\":\"admin@example.com\",\"password\":\"admin123\"}",
+  "body": "{\"cpf\":\"81788455045\"}",
   "isBase64Encoded": false
 }

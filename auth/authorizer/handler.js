@@ -1,40 +1,41 @@
 const { verify } = require('../shared/jwt');
 
 function extractBearerToken(event) {
-  const headers = event.headers || {};
-  const authHeader = headers.authorization || headers.Authorization;
+    const headers = event.headers || {};
+    const authHeader = headers.authorization || headers.Authorization;
 
-  if (!authHeader) {
-    return null;
-  }
+    if (!authHeader) {
+        return null;
+    }
 
-  const [scheme, token] = authHeader.split(' ');
+    const [scheme, token] = authHeader.split(' ');
 
-  if (scheme?.toLowerCase() !== 'bearer' || !token) {
-    return null;
-  }
+    if (scheme?.toLowerCase() !== 'bearer' || !token) {
+        return null;
+    }
 
-  return token;
+    return token;
 }
 
 exports.handler = async (event) => {
-  const token = extractBearerToken(event);
+    const token = extractBearerToken(event);
 
-  if (!token) {
-    return { isAuthorized: false };
-  }
+    if (!token) {
+        return { isAuthorized: false };
+    }
 
-  try {
-    const payload = verify(token);
+    try {
+        const payload = verify(token);
 
-    return {
-      isAuthorized: true,
-      context: {
-        userId: String(payload.userId),
-        email: String(payload.email),
-      },
-    };
-  } catch {
-    return { isAuthorized: false };
-  }
+        return {
+            isAuthorized: true,
+            context: {
+                userId: String(payload.userId),
+                cpf: String(payload.cpf || ''),
+                email: String(payload.email),
+            },
+        };
+    } catch {
+        return { isAuthorized: false };
+    }
 };

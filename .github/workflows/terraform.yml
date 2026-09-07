@@ -27,8 +27,6 @@ jobs:
       TF_VAR_enable_auth_gateway: ${{ vars.ENABLE_AUTH_GATEWAY || 'true' }}
       TF_VAR_eks_backend_url: ${{ vars.EKS_BACKEND_URL || '' }}
       TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
-      TF_VAR_auth_email: ${{ secrets.AUTH_EMAIL }}
-      TF_VAR_auth_password: ${{ secrets.AUTH_PASSWORD }}
       TF_VAR_gateway_trust_secret: ${{ secrets.GATEWAY_TRUST_SECRET }}
       TF_VAR_jwt_expires_in: ${{ vars.JWT_EXPIRES_IN || '1h' }}
     defaults:
@@ -93,8 +91,6 @@ jobs:
         run: |
           missing=0
           if [ -z "$TF_VAR_jwt_secret" ]; then echo "::error::JWT_SECRET is required"; missing=1; fi
-          if [ -z "$TF_VAR_auth_email" ]; then echo "::error::AUTH_EMAIL is required"; missing=1; fi
-          if [ -z "$TF_VAR_auth_password" ]; then echo "::error::AUTH_PASSWORD is required"; missing=1; fi
           if [ -z "$TF_VAR_gateway_trust_secret" ]; then echo "::error::GATEWAY_TRUST_SECRET is required"; missing=1; fi
           if [ "$missing" -ne 0 ]; then exit 1; fi
 

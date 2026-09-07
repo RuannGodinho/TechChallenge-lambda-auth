@@ -17,7 +17,7 @@ O empacote (`terraform/scripts/prepare-auth-lambda.js`) instala deps de produç�
 
 1. Cluster EKS publicado pelo [TechChallenge-infra-eks](https://github.com/RuannGodinho/TechChallenge-infra-eks) (SSM `/techchallenge/eks/backend_url`).
 2. API no NodePort `30080` (repo da aplicação).
-3. Secrets GitHub iguais aos da API: `JWT_SECRET`, `AUTH_EMAIL`, `AUTH_PASSWORD`, `GATEWAY_TRUST_SECRET`.
+3. Secrets GitHub iguais aos da API: `JWT_SECRET`, `GATEWAY_TRUST_SECRET`. A AuthSign consulta o cliente na API (`BACKEND_URL` via SSM `/techchallenge/eks/backend_url`) com o mesmo trust secret.
 
 ## Documentação
 

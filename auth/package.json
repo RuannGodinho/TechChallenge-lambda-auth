@@ -15,6 +15,7 @@
     "sam:backend:down": "echo Use docker compose in the TechChallenge-Fiap clone for the local Express backend"
   },
   "dependencies": {
+    "cpf-cnpj-validator": "^1.0.3",
     "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
