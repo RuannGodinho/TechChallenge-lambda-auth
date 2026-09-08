@@ -15,8 +15,8 @@ Globals:
       Variables:
         JWT_SECRET: local-dev-secret
         JWT_EXPIRES_IN: 1h
-        AUTH_EMAIL: admin@example.com
-        AUTH_PASSWORD: admin123
+        BACKEND_URL: http://host.docker.internal:3000
+        GATEWAY_TRUST_SECRET: local-dev-trust-secret
 
 Resources:
   AuthHttpApi:

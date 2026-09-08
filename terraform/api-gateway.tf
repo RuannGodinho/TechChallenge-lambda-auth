@@ -50,6 +50,7 @@ resource "aws_apigatewayv2_integration" "eks_proxy" {
     "overwrite:header.X-Gateway-Trust" = var.gateway_trust_secret
     "overwrite:header.X-User-Id"       = "$context.authorizer.userId"
     "overwrite:header.X-User-Email"    = "$context.authorizer.email"
+    "overwrite:header.X-User-Cpf"      = "$context.authorizer.cpf"
   }
 }
 

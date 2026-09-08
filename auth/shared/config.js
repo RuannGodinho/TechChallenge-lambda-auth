@@ -1,8 +1,8 @@
 const DEV_DEFAULTS = {
   jwtSecret: 'local-dev-secret',
   jwtExpiresIn: '1h',
-  authEmail: 'admin@example.com',
-  authPassword: 'admin123',
+  backendUrl: 'http://host.docker.internal:3000',
+  gatewayTrustSecret: 'local-trust',
 };
 
 function requireEnv(name) {
@@ -22,16 +22,16 @@ function getConfig() {
     return {
       jwtSecret: process.env.JWT_SECRET || DEV_DEFAULTS.jwtSecret,
       jwtExpiresIn: process.env.JWT_EXPIRES_IN || DEV_DEFAULTS.jwtExpiresIn,
-      authEmail: process.env.AUTH_EMAIL || DEV_DEFAULTS.authEmail,
-      authPassword: process.env.AUTH_PASSWORD || DEV_DEFAULTS.authPassword,
+      backendUrl: (process.env.BACKEND_URL || DEV_DEFAULTS.backendUrl).replace(/\/$/, ''),
+      gatewayTrustSecret: process.env.GATEWAY_TRUST_SECRET || DEV_DEFAULTS.gatewayTrustSecret,
     };
   }
 
   return {
     jwtSecret: requireEnv('JWT_SECRET'),
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || '1h',
-    authEmail: requireEnv('AUTH_EMAIL'),
-    authPassword: requireEnv('AUTH_PASSWORD'),
+    backendUrl: (process.env.BACKEND_URL || requireEnv('BACKEND_URL')).replace(/\/$/, ''),
+    gatewayTrustSecret: requireEnv('GATEWAY_TRUST_SECRET'),
   };
 }
 

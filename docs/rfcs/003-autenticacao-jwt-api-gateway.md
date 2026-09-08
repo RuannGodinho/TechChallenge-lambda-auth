@@ -33,12 +33,12 @@ Dois modos, um contrato de token:
 
 **Produção (`gateway`)**
 
-1. `POST /api/login` no API Gateway **não** usa authorizer. A Lambda AuthSign valida `AUTH_EMAIL` / `AUTH_PASSWORD` e devolve `{ token }`.
-2. Demais rotas enviam `Authorization: Bearer <jwt>`. O Authorizer verifica assinatura HS256 (`JWT_SECRET`) e devolve `userId` e `email`.
-3. O Gateway faz proxy ao EKS e injeta `x-user-id`, `x-user-email` e `x-gateway-trust`.
+1. `POST /api/login` no API Gateway **não** usa authorizer. A Lambda AuthSign valida o CPF, consulta `GET {BACKEND_URL}/api/internal/auth/clientes/{cpf}` com `x-gateway-trust` e devolve `{ token }` só se o cliente existir e estiver `ATIVO`.
+2. Demais rotas enviam `Authorization: Bearer <jwt>`. O Authorizer verifica assinatura HS256 (`JWT_SECRET`) e devolve `userId`, `cpf` e `email`.
+3. O Gateway faz proxy ao EKS e injeta `x-user-id`, `x-user-cpf`, `x-user-email` e `x-gateway-trust`.
 4. O `gatewayUserMiddleware` na API compara o trust com `GATEWAY_TRUST_SECRET` (`crypto.timingSafeEqual`). Login direto no NodePort responde **410**.
 
-JWT: algoritmo **HS256**, payload `{ userId, email }`, expiração `JWT_EXPIRES_IN` (default `1h`).
+JWT: algoritmo **HS256**, payload `{ userId, cpf, email }`, expiração `JWT_EXPIRES_IN` (default `1h`).
 
 Rotas públicas no Gateway: `POST /api/login`, Swagger (`/docs`, `/swagger.json`) e a consulta de OS por documento (`GET /api/ordensServico/:cpfCnpj/detalhes`).
 
@@ -56,7 +56,7 @@ sequenceDiagram
 
   Cliente->>GW: GET /api/me Bearer
   GW->>AuthZ: valida JWT
-  AuthZ-->>GW: userId, email
+  AuthZ-->>GW: userId, cpf, email
   GW->>API: x-user-* + x-gateway-trust
   API-->>Cliente: 200
 ```
@@ -75,7 +75,7 @@ Detalhe do fluxo: [Sequência — Autenticação](../ARQUITETURA-SEQUENCIA-AUTEN
 
 **Riscos e restrições**
 
-- Credenciais de laboratório são um único par `AUTH_EMAIL` / `AUTH_PASSWORD` — não há IdP, refresh token nem usuários reais.
+- Login é por CPF cadastrado na oficina (status `ATIVO`/`INATIVO`). Não há IdP, refresh token nem senha de cliente.
 - HS256 com segredo compartilhado exige o mesmo `JWT_SECRET` na Lambda e, no modo local, na API. Rotação é manual.
 - `x-user-*` só é confiável se o NodePort não for alcançável por clientes que também conheçam `GATEWAY_TRUST_SECRET`. O segredo precisa ficar no Secret/SSM, nunca no repositório.
 - Authorizer em Lambda adiciona latência (cold start) em cada request autenticada; volume de aula absorve isso.
@@ -88,13 +88,13 @@ Detalhe do fluxo: [Sequência — Autenticação](../ARQUITETURA-SEQUENCIA-AUTEN
 | **Amazon Cognito** (User Pool + JWT RS256 no Gateway) | Caminho “AWS nativo” de produção. Para o challenge, soma User Pool, app client, hosted UI e custo/complexidade sem ganho pedagógico frente a duas Lambdas e um secret. |
 | **JWT só no Express** (sem Gateway) | Simples no Compose, mas o NodePort vira a borda real. Contraria o desenho “cliente HTTP acessa apenas o API Gateway”. |
 | **Sessão server-side** (cookie + Redis/Memory) | HPA com 1–4 réplicas exigiria store compartilhado. REST + Swagger + clientes não-browser (curl) combinam melhor com Bearer. |
-| **OAuth2 / OIDC completo** (Keycloak, Auth0) | Correto para multi-app e SSO. Fora do escopo: um usuário mock e um recurso API. |
+| **OAuth2 / OIDC completo** (Keycloak, Auth0) | Correto para multi-app e SSO. Fora do escopo: login por CPF do cliente da oficina. |
 | **mTLS entre Gateway e o node** | Mais seguro que trust header, porém exige certificados e, na prática, um ALB/NLB — custo e operação que a [RFC-001 no infra-eks](https://github.com/RuannGodinho/TechChallenge-infra-eks/blob/main/docs/rfcs/001-adocao-aws.md) evitou de propósito. |
-| **API keys estáticas no Gateway** | Não demonstram login, expiração nem identidade (`userId` / `email`) em `/api/me`. |
+| **API keys estáticas no Gateway** | Não demonstram login, expiração nem identidade (`userId` / `cpf` / `email`) em `/api/me`. |
 
 ## Pontos em aberto
 
 - Migrar HS256 → RS256 (chave no SSM/KMS, authorizer JWT nativo do HTTP API) se a banca ou a fase seguinte exigir IdP.
-- Trocar o usuário único por uma coleção `Usuario` no Mongo, ainda emitindo o token na Lambda (lookup) ou mantendo o mock até haver gestão de perfil.
+- O lookup do cliente já usa a coleção da oficina via API interna; um IdP ou coleção `Usuario` separada só entra se a banca exigir senha/perfil além do CPF.
 - Refresh token e logout (denylist) — não existem neste recorte; a mitigação atual é TTL de 1h.
 - Restringir o Security Group do node para que só o API Gateway alcance a porta `30080`, reduzindo a dependência exclusiva do `x-gateway-trust`.

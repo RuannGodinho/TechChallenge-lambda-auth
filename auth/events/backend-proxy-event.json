@@ -14,8 +14,9 @@
     },
     "authorizer": {
       "lambda": {
-        "userId": "mock-user",
-        "email": "admin@example.com"
+        "userId": "client-1",
+        "email": "ruann@gmail.com",
+        "cpf": "81788455045"
       }
     }
   },

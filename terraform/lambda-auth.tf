@@ -1,9 +1,9 @@
 locals {
   auth_lambda_env = {
-    JWT_SECRET     = var.jwt_secret
-    JWT_EXPIRES_IN = var.jwt_expires_in
-    AUTH_EMAIL     = var.auth_email
-    AUTH_PASSWORD  = var.auth_password
+    JWT_SECRET           = var.jwt_secret
+    JWT_EXPIRES_IN       = var.jwt_expires_in
+    BACKEND_URL          = local.eks_backend_url
+    GATEWAY_TRUST_SECRET = var.gateway_trust_secret
   }
 
   auth_lambda_source_files = [
@@ -95,11 +95,10 @@ resource "aws_lambda_function" "auth_sign" {
     precondition {
       condition = (
         var.jwt_secret != "" &&
-        var.auth_email != "" &&
-        var.auth_password != "" &&
-        var.gateway_trust_secret != ""
+        var.gateway_trust_secret != "" &&
+        local.eks_backend_url != ""
       )
-      error_message = "jwt_secret, auth_email, auth_password, and gateway_trust_secret must be set when enable_auth_gateway is true."
+      error_message = "jwt_secret, gateway_trust_secret, and eks_backend_url must be set when enable_auth_gateway is true."
     }
   }
 
@@ -132,11 +131,10 @@ resource "aws_lambda_function" "auth_authorizer" {
     precondition {
       condition = (
         var.jwt_secret != "" &&
-        var.auth_email != "" &&
-        var.auth_password != "" &&
-        var.gateway_trust_secret != ""
+        var.gateway_trust_secret != "" &&
+        local.eks_backend_url != ""
       )
-      error_message = "jwt_secret, auth_email, auth_password, and gateway_trust_secret must be set when enable_auth_gateway is true."
+      error_message = "jwt_secret, gateway_trust_secret, and eks_backend_url must be set when enable_auth_gateway is true."
     }
   }
 

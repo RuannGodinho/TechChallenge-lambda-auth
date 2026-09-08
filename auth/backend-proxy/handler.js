@@ -14,6 +14,7 @@ const STRIPPED_HEADERS = new Set([
   'content-length',
   'x-user-id',
   'x-user-email',
+  'x-user-cpf',
   'x-gateway-trust',
 ]);
 
@@ -34,6 +35,10 @@ function buildForwardHeaders(event) {
 
   if (authorizer.email) {
     headers['x-user-email'] = String(authorizer.email);
+  }
+
+  if (authorizer.cpf) {
+    headers['x-user-cpf'] = String(authorizer.cpf);
   }
 
   const trustSecret = process.env.GATEWAY_TRUST_SECRET;

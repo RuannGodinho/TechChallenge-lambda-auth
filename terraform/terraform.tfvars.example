@@ -3,5 +3,6 @@ name_prefix = "techchallenge-eks"
 ssm_prefix  = "/techchallenge"
 
 # enable_auth_gateway defaults to true in this repo.
-# Secrets via TF_VAR_*: JWT_SECRET, AUTH_EMAIL, AUTH_PASSWORD, GATEWAY_TRUST_SECRET
+# Secrets via TF_VAR_*: JWT_SECRET, GATEWAY_TRUST_SECRET
+# AuthSign looks up the client via GET {BACKEND_URL}/api/internal/auth/clientes/{cpf}
 # Optional: eks_backend_url (otherwise SSM /techchallenge/eks/backend_url)

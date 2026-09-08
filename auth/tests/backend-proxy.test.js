@@ -46,8 +46,9 @@ describe('backend-proxy handler', () => {
         http: { method: 'GET', path: '/api/clientes' },
         authorizer: {
           lambda: {
-            userId: 'mock-user',
-            email: 'admin@example.com',
+            userId: 'client-1',
+            email: 'ruann@gmail.com',
+            cpf: '81788455045',
           },
         },
       },
@@ -58,8 +59,9 @@ describe('backend-proxy handler', () => {
 
     const [, options] = http.request.mock.calls[0];
     expect(options.method).toBe('GET');
-    expect(options.headers['x-user-id']).toBe('mock-user');
-    expect(options.headers['x-user-email']).toBe('admin@example.com');
+    expect(options.headers['x-user-id']).toBe('client-1');
+    expect(options.headers['x-user-email']).toBe('ruann@gmail.com');
+    expect(options.headers['x-user-cpf']).toBe('81788455045');
     expect(options.headers['x-gateway-trust']).toBe('test-trust-secret');
     expect(options.headers.host).toBeUndefined();
   });
@@ -85,21 +87,24 @@ describe('backend-proxy handler', () => {
       headers: {
         'X-User-Id': 'attacker-id',
         'X-User-Email': 'attacker@example.com',
+        'X-User-Cpf': '00000000000',
       },
       requestContext: {
         http: { method: 'GET', path: '/api/clientes' },
         authorizer: {
           lambda: {
-            userId: 'mock-user',
-            email: 'admin@example.com',
+            userId: 'client-1',
+            email: 'ruann@gmail.com',
+            cpf: '81788455045',
           },
         },
       },
     });
 
     const [, options] = http.request.mock.calls[0];
-    expect(options.headers['x-user-id']).toBe('mock-user');
-    expect(options.headers['x-user-email']).toBe('admin@example.com');
+    expect(options.headers['x-user-id']).toBe('client-1');
+    expect(options.headers['x-user-email']).toBe('ruann@gmail.com');
+    expect(options.headers['x-user-cpf']).toBe('81788455045');
   });
 
   test('returns 502 when backend is unavailable', async () => {
