@@ -59,3 +59,15 @@ variable "gateway_trust_secret" {
   sensitive   = true
   default     = ""
 }
+
+variable "execution_backend_url" {
+  description = "Optional execution URL override; otherwise read SSM /techchallenge/eks/execution_backend_url."
+  type        = string
+  default     = ""
+}
+
+variable "billing_backend_url" {
+  description = "Optional billing URL override; otherwise read SSM /techchallenge/eks/billing_backend_url."
+  type        = string
+  default     = ""
+}

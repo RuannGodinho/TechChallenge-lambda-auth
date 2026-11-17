@@ -6,3 +6,5 @@ ssm_prefix  = "/techchallenge"
 # Secrets via TF_VAR_*: JWT_SECRET, GATEWAY_TRUST_SECRET
 # AuthSign looks up the client via GET {BACKEND_URL}/api/internal/auth/clientes/{cpf}
 # Optional: eks_backend_url (otherwise SSM /techchallenge/eks/backend_url)
+
+# Optional: execution_backend_url / billing_backend_url; otherwise use the corresponding EKS SSM parameters.

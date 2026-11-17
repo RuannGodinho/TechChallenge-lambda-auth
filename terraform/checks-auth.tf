@@ -28,3 +28,17 @@ check "auth_lambda_production_deps_installed" {
     error_message = "Lambda production dependencies were not installed before packaging auth-lambda.zip."
   }
 }
+
+check "auth_gateway_requires_execution_backend_url" {
+  assert {
+    condition     = !var.enable_auth_gateway || (local.execution_backend_url != "" && local.execution_backend_url != "pending")
+    error_message = "Apply TechChallenge-infra-eks first or set execution_backend_url to a reachable NodePort URL."
+  }
+}
+
+check "auth_gateway_requires_billing_backend_url" {
+  assert {
+    condition     = !var.enable_auth_gateway || (local.billing_backend_url != "" && local.billing_backend_url != "pending")
+    error_message = "Apply TechChallenge-infra-eks first or set billing_backend_url to a reachable NodePort URL."
+  }
+}

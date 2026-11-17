@@ -26,6 +26,8 @@ jobs:
     env:
       TF_VAR_enable_auth_gateway: ${{ vars.ENABLE_AUTH_GATEWAY || 'true' }}
       TF_VAR_eks_backend_url: ${{ vars.EKS_BACKEND_URL || '' }}
+      TF_VAR_execution_backend_url: ${{ vars.EXECUTION_BACKEND_URL || '' }}
+      TF_VAR_billing_backend_url: ${{ vars.BILLING_BACKEND_URL || '' }}
       TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
       TF_VAR_gateway_trust_secret: ${{ secrets.GATEWAY_TRUST_SECRET }}
       TF_VAR_jwt_expires_in: ${{ vars.JWT_EXPIRES_IN || '1h' }}
