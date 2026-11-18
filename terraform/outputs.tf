@@ -18,3 +18,15 @@ output "eks_backend_url" {
   value       = var.enable_auth_gateway ? local.eks_backend_url : ""
   sensitive   = true
 }
+
+output "execution_backend_url" {
+  description = "execution backend URL used by API Gateway"
+  value       = var.enable_auth_gateway ? local.execution_backend_url : ""
+  sensitive   = true
+}
+
+output "billing_backend_url" {
+  description = "billing backend URL used by API Gateway"
+  value       = var.enable_auth_gateway ? local.billing_backend_url : ""
+  sensitive   = true
+}

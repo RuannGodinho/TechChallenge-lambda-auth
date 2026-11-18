@@ -162,3 +162,11 @@ Secrets GitHub: `JWT_SECRET`, `GATEWAY_TRUST_SECRET`, `AWS_ACCESS_KEY_ID`, `AWS_
 | [RFC-003](docs/rfcs/003-autenticacao-jwt-api-gateway.md) / [ADR-003](docs/adrs/003-autenticacao-jwt-api-gateway.md) | Decisão da borda JWT |
 | [Contrato CPF na API](https://github.com/RuannGodinho/TechChallenge-Fiap/blob/main/docs/CONTRATO-AUTH-CPF.md) | Body, status codes e lookup interno |
 | [Índice da solução](https://github.com/RuannGodinho/TechChallenge-Fiap/blob/main/docs/ARQUITETURA.md) | Checklist do enunciado |
+
+## Rotas dos microsserviços no EKS
+
+O Terraform mantém o proxy original do Orders e acrescenta rotas autenticadas exatas e com subcaminhos: /api/pecas, /api/servicos, /api/estoque, /api/execucoes-servico e /api/metricas → Execution; /api/orcamentos → Billing. Todas reutilizam o authorizer e os mesmos headers de identidade/trust. POST /webhooks/mercado-pago → Billing é público e a assinatura é validada pelo aplicativo. /internal não é exposto.
+
+Aplicar primeiro infra-eks e os serviços. As URLs vêm de /techchallenge/eks/backend_url, execution_backend_url e billing_backend_url no SSM. Overrides opcionais: EKS_BACKEND_URL, EXECUTION_BACKEND_URL e BILLING_BACKEND_URL nas GitHub Variables (ou as variáveis Terraform correspondentes). GATEWAY_TRUST_SECRET deve coincidir nos três apps; JWT_SECRET continua nos Lambdas. Novas integrações rejeitam URL vazia/pending.
+
+O webhook do Mercado Pago usa <auth_api_gateway_url>/webhooks/mercado-pago; configure as credenciais/token e o segredo de assinatura no Billing antes de testar pagamento. A configuração das rotas foi validada localmente; não houve apply nem teste na AWS. Após alteração do IP público do node, atualizar infra-eks e este stack conforme o padrão NodePort existente.

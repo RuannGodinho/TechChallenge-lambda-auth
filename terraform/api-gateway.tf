@@ -143,3 +143,91 @@ resource "aws_apigatewayv2_route" "protected_api" {
   authorization_type = "CUSTOM"
   authorizer_id      = aws_apigatewayv2_authorizer.jwt[0].id
 }
+
+# Keep Orders' existing catch-all; route only the resources owned by the split services.
+locals {
+  split_backend_urls = {
+    execution = local.execution_backend_url
+    billing   = local.billing_backend_url
+  }
+  split_service_resources = {
+    pecas             = "execution"
+    servicos          = "execution"
+    estoque           = "execution"
+    execucoes-servico = "execution"
+    metricas          = "execution"
+    orcamentos        = "billing"
+  }
+  split_service_routes = merge(
+    { for resource, service in local.split_service_resources : "${resource}-root" => {
+      service = service
+      path    = "/api/${resource}"
+      route   = "ANY /api/${resource}"
+    } },
+    { for resource, service in local.split_service_resources : "${resource}-proxy" => {
+      service = service
+      path    = "/api/${resource}/{proxy}"
+      route   = "ANY /api/${resource}/{proxy+}"
+    } }
+  )
+}
+
+resource "aws_apigatewayv2_integration" "split_service" {
+  for_each = var.enable_auth_gateway ? local.split_service_routes : {}
+
+  api_id             = aws_apigatewayv2_api.auth[0].id
+  integration_type   = "HTTP_PROXY"
+  integration_method = "ANY"
+  integration_uri    = "${trim(local.split_backend_urls[each.value.service], "/")}${each.value.path}"
+  connection_type    = "INTERNET"
+
+  request_parameters = {
+    "overwrite:header.X-Gateway-Trust" = var.gateway_trust_secret
+    "overwrite:header.X-User-Id"       = "$context.authorizer.userId"
+    "overwrite:header.X-User-Email"    = "$context.authorizer.email"
+    "overwrite:header.X-User-Cpf"      = "$context.authorizer.cpf"
+  }
+
+  lifecycle {
+    precondition {
+      condition     = local.split_backend_urls[each.value.service] != "" && local.split_backend_urls[each.value.service] != "pending"
+      error_message = "Resolve Execution and Billing NodePort URLs before applying gateway routes."
+    }
+  }
+}
+
+resource "aws_apigatewayv2_route" "split_service" {
+  for_each = var.enable_auth_gateway ? local.split_service_routes : {}
+
+  api_id             = aws_apigatewayv2_api.auth[0].id
+  route_key          = each.value.route
+  target             = "integrations/${aws_apigatewayv2_integration.split_service[each.key].id}"
+  authorization_type = "CUSTOM"
+  authorizer_id      = aws_apigatewayv2_authorizer.jwt[0].id
+}
+
+# Mercado Pago authenticates its webhook signature in Billing; this route does not use JWT.
+resource "aws_apigatewayv2_integration" "billing_webhook" {
+  count = var.enable_auth_gateway ? 1 : 0
+
+  api_id             = aws_apigatewayv2_api.auth[0].id
+  integration_type   = "HTTP_PROXY"
+  integration_method = "POST"
+  integration_uri    = "${trim(local.billing_backend_url, "/")}/webhooks/mercado-pago"
+  connection_type    = "INTERNET"
+
+  lifecycle {
+    precondition {
+      condition     = local.billing_backend_url != "" && local.billing_backend_url != "pending"
+      error_message = "Resolve Billing's NodePort URL before applying its webhook route."
+    }
+  }
+}
+
+resource "aws_apigatewayv2_route" "billing_webhook" {
+  count = var.enable_auth_gateway ? 1 : 0
+
+  api_id    = aws_apigatewayv2_api.auth[0].id
+  route_key = "POST /webhooks/mercado-pago"
+  target    = "integrations/${aws_apigatewayv2_integration.billing_webhook[0].id}"
+}
